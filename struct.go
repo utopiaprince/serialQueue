@@ -1,7 +1,13 @@
 package serialQueue
 
+import (
+	"bytes"
+	"sync"
+)
+
+type SerialSigType uint8
 const (
-	SD_SIG uint8 = 0x01
+	SD_SIG SerialSigType = 0x01
 	LD_SIG
 	CHAR_SIG
 	ED_SIG
@@ -11,7 +17,7 @@ type SerialStart struct {
 	len   uint8
 	pos   uint8
 	data  []*uint8
-	vaild bool
+	valid bool
 }
 
 type SerialLenDesc struct {
@@ -20,7 +26,7 @@ type SerialLenDesc struct {
 	lenVal uint16
 	index  uint8
 	data   []*uint8
-	vaild  bool
+	valid  bool
 }
 
 type SerialArgu struct {
@@ -31,21 +37,28 @@ type SerialArgu struct {
 type SerialEnd struct {
 	len   uint8
 	data  []*uint8
-	vaild bool
+	valid bool
 
 	delayEn  bool
 	delayMs  uint16
-	callback func() uint16
 }
 
 type SerialReg struct {
-	st   SerialStart
-	ld   SerialLenDesc
-	argu SerialArgu
-	sd   SerialEnd
+	St   SerialStart
+	Ld   SerialLenDesc
+	Argu SerialArgu
+	Sd   SerialEnd
+}
+
+type SerialFsm struct {
+	currentState func(sig SerialSigType, char byte) uint16
+	state SerialSigType
+	fn    func(interface{})
 }
 
 type SerialFrm struct {
+	sync.RWMutex
+	register 	 *SerialReg
 	sdIndex      uint8
 	ld           SerialLenDesc
 	payloadLen   uint16
@@ -54,4 +67,9 @@ type SerialFrm struct {
 	locked       uint8
 	sig          uint8
 	char         uint8
+	fsm 		 SerialFsm
+	sqqueue      *bytes.Buffer
 }
+
+
+
