@@ -6,12 +6,15 @@ import (
 )
 
 type SerialSigType uint8
+
 const (
 	SD_SIG SerialSigType = 0x01
 	LD_SIG
 	CHAR_SIG
 	ED_SIG
 )
+
+const SERIAL_LD_LEN_MAX	 = 2
 
 type SerialStart struct {
 	len   uint8
@@ -36,9 +39,8 @@ type SerialArgu struct {
 
 type SerialEnd struct {
 	len   uint8
-	data  []*uint8
+	data  uint8
 	valid bool
-
 	delayEn  bool
 	delayMs  uint16
 }
@@ -47,13 +49,7 @@ type SerialReg struct {
 	St   SerialStart
 	Ld   SerialLenDesc
 	Argu SerialArgu
-	Sd   SerialEnd
-}
-
-type SerialFsm struct {
-	currentState func(sig SerialSigType, char byte) uint16
-	state SerialSigType
-	fn    func(interface{})
+	Ed   SerialEnd
 }
 
 type SerialFrm struct {
@@ -67,8 +63,10 @@ type SerialFrm struct {
 	locked       uint8
 	sig          uint8
 	char         uint8
-	fsm 		 SerialFsm
+
 	sqqueue      *bytes.Buffer
+	fsmState 	 SerialSigType
+	fn    		 func()
 }
 
 
