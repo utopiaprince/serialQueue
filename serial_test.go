@@ -16,6 +16,5 @@ func TestSerial_Create(t *testing.T) {
 	if mySerial == nil {
 		t.Errorf("Serial New failed")
 	}
-	t.Errorf("Serial New failed")
 	beego.Info("mySerial: ", mySerial)
 }

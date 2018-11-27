@@ -18,7 +18,6 @@ const SERIAL_LD_LEN_MAX	 = 2
 
 type SerialStart struct {
 	len   uint8
-	pos   uint8
 	data  []*uint8
 	valid bool
 }
@@ -26,8 +25,6 @@ type SerialStart struct {
 type SerialLenDesc struct {
 	len    uint8
 	pos    uint8
-	lenVal uint16
-	index  uint8
 	data   []*uint8
 	valid  bool
 }
@@ -52,11 +49,17 @@ type SerialReg struct {
 	Ed   SerialEnd
 }
 
+
+
 type SerialFrm struct {
 	sync.RWMutex
 	register 	 *SerialReg
 	sdIndex      uint8
-	ld           SerialLenDesc
+	//ld           SerialLenDesc
+	ldIndex      uint8
+	ldVal        uint16
+	ldData      []byte
+
 	payloadLen   uint16
 	edIndex      uint8
 	lastEnterNum uint16
