@@ -55,7 +55,7 @@ type SerialFrm struct {
 	sync.RWMutex
 	register 	 *SerialReg
 	sdIndex      uint8
-	//ld           SerialLenDesc
+
 	ldIndex      uint8
 	ldVal        uint16
 	ldData      []byte
@@ -64,8 +64,8 @@ type SerialFrm struct {
 	edIndex      uint8
 	lastEnterNum uint16
 	locked       uint8
-	sig          uint8
-	char         uint8
+	//sig          uint8
+	//char         uint8
 
 	sqqueue      *bytes.Buffer
 	fsmState 	 SerialSigType

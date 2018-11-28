@@ -174,6 +174,14 @@ func New(sReg SerialReg, squeueLen uint16) (*SerialFrm, error) {
 	sFrm.register = &sReg
 	sFrm.register.St.len = uint8(len(sFrm.register.St.data))
 
+	sFrm.ldIndex = 0
+	sFrm.ldVal = 0
+	sFrm.ldData = make([]byte, len(sFrm.register.Ld.data))
+
+	sFrm.payloadLen = 0
+	sFrm.edIndex = 0
+	sFrm.lastEnterNum = 0
+
 	sFrm.fsmState = SD_SIG
 	sFrm.sqqueue = bytes.NewBuffer(make([]byte, 0, squeueLen))
 
