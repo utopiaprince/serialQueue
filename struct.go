@@ -8,7 +8,7 @@ import (
 type SerialSigType uint8
 
 const (
-	SD_SIG SerialSigType = 0x01
+	SD_SIG SerialSigType = iota + 0x01
 	LD_SIG
 	CHAR_SIG
 	ED_SIG
@@ -18,14 +18,14 @@ const SERIAL_LD_LEN_MAX	 = 2
 
 type SerialStart struct {
 	len   uint8
-	data  []*uint8
+	data  []uint8
 	valid bool
 }
 
 type SerialLenDesc struct {
 	len    uint8
 	pos    uint8
-	data   []*uint8
+	data   []uint8
 	valid  bool
 }
 

@@ -5,19 +5,20 @@ import (
 	"errors"
 )
 
-func (sf *SerialFrm) waitSdState(state SerialSigType, ch byte) {
+func (sf *SerialFrm) waitSdState(state SerialSigType, ch byte) bool {
 	if !sf.register.St.valid {
 		sf.tranState(LD_SIG)
-		return
+		return false
 	}
 
-	if *sf.register.St.data[sf.sdIndex] == ch  {
+	if sf.register.St.data[sf.sdIndex] == ch  {
 		sf.sqqueue.Write([]byte{ch})
 		sf.sdIndex++
 		sf.lastEnterNum++
 		if sf.sdIndex >= sf.register.St.len {
 			sf.sdIndex = 0
 			sf.tranState(LD_SIG)
+			return true
 		}
 	} else {
 		if sf.sqqueue.Len() != 0 {
@@ -27,18 +28,20 @@ func (sf *SerialFrm) waitSdState(state SerialSigType, ch byte) {
 		sf.sdIndex = 0
 		sf.lastEnterNum = 0
 	}
+
+	return true
 }
 
-func (sf *SerialFrm) waitLdState(state SerialSigType, ch byte) {
+func (sf *SerialFrm) waitLdState(state SerialSigType, ch byte) bool{
 	if !sf.register.Ld.valid {
 		sf.tranState(ED_SIG)
-		return
+		return false
 	}
 
-	if sf.lastEnterNum <= uint16(sf.register.Ld.pos+1) {
+	if sf.lastEnterNum < uint16(sf.register.Ld.pos) {
 		sf.sqqueue.Write([]byte{ch})
 		sf.lastEnterNum++
-		return
+		return true
 	}
 
 	sf.ldData[sf.ldIndex] = uint8(ch)
@@ -64,6 +67,8 @@ func (sf *SerialFrm) waitLdState(state SerialSigType, ch byte) {
 		sf.ldIndex = 0
 		sf.tranState(ED_SIG)
 	}
+
+	return true
 }
 
 func (sf *SerialFrm) endStateHandle() {
@@ -81,7 +86,7 @@ func (sf *SerialFrm) endStateHandle() {
 	sf.ldVal = 0
 }
 
-func (sf *SerialFrm) waitEdState(state SerialSigType, ch byte) {
+func (sf *SerialFrm) waitEdState(state SerialSigType, ch byte){
 	if !sf.register.Ed.valid {
 		if sf.ldVal == 0 {
 			sf.endStateHandle()
@@ -146,14 +151,20 @@ func (sf *SerialFrm)tranState(state SerialSigType) {
 
 func (sf *SerialFrm)Write(data []byte) uint16 {
 	for _, d := range data {
+		if sf.fsmState == SD_SIG {
+			if sf.waitSdState(SD_SIG, d) {
+				continue
+			}
+		}
+
+		if sf.fsmState == LD_SIG {
+			if sf.waitLdState(LD_SIG, d) {
+				continue
+			}
+		}
+
 		if sf.fsmState == ED_SIG {
 			sf.waitEdState(ED_SIG, d)
-		}
-		if sf.fsmState == LD_SIG {
-			sf.waitLdState(LD_SIG, d)
-		}
-		if sf.fsmState == SD_SIG {
-			sf.waitSdState(SD_SIG, d)
 		}
 	}
 	return 0
@@ -176,7 +187,7 @@ func New(sReg SerialReg, squeueLen uint16) (*SerialFrm, error) {
 
 	sFrm.ldIndex = 0
 	sFrm.ldVal = 0
-	sFrm.ldData = make([]byte, len(sFrm.register.Ld.data))
+	sFrm.ldData = make([]byte, sFrm.register.Ld.len)
 
 	sFrm.payloadLen = 0
 	sFrm.edIndex = 0
