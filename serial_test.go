@@ -2,8 +2,8 @@ package serialQueue
 
 import (
 	"encoding/hex"
+	"github.com/astaxie/beego"
 	"testing"
- 	"github.com/astaxie/beego"
 )
 
 func TestSerial_Create(t *testing.T) {
@@ -19,15 +19,15 @@ func TestSerial_Create(t *testing.T) {
 	}
 }
 
-func TestSerial_Frame_Ed(t *testing.T){
+func TestSerial_Frame_Ed(t *testing.T) {
 	mySerial, _ := New(SerialReg{
 		Argu: SerialArgu{
-			lenMax: 100,
-			lenMin: 1,
+			LenMax: 100,
+			LenMin: 1,
 		},
 		Ed: SerialEnd{
-			data: 0x0d,
-			valid: true,
+			Data:  0x0d,
+			Valid: true,
 		},
 	}, 1024)
 
@@ -43,21 +43,20 @@ func TestSerial_Frame_Ed(t *testing.T){
 
 	originBuf := []byte{
 		0x01, 0x02, 0x0d,
-		2,3,4, 0x0d}
+		2, 3, 4, 0x0d}
 	beego.Info("write buf: ", hex.EncodeToString(originBuf))
 	mySerial.Write(originBuf)
 }
 
-
 func TestSerialFrame_St_Ed(t *testing.T) {
 	mySerial, _ := New(SerialReg{
 		St: SerialStart{
-			valid: true,
-			data: []uint8{0x01,0x02},
+			Valid: true,
+			Data:  []uint8{0x01, 0x02},
 		},
 		Ed: SerialEnd{
-			data: 0x0d,
-			valid: true,
+			Data:  0x0d,
+			Valid: true,
 		},
 	}, 1024)
 	mySerial.AddCallback(func() {
@@ -71,9 +70,9 @@ func TestSerialFrame_St_Ed(t *testing.T) {
 	}
 
 	originBuf := []byte{
-		0x01,0x02,0x0d,
-		2,3,4,0x0d,
-		0x01,0x02,0x03,0x04,0x0d}
+		0x01, 0x02, 0x0d,
+		2, 3, 4, 0x0d,
+		0x01, 0x02, 0x03, 0x04, 0x0d}
 	beego.Info("write buf: ", hex.EncodeToString(originBuf))
 	mySerial.Write(originBuf)
 }
@@ -81,17 +80,17 @@ func TestSerialFrame_St_Ed(t *testing.T) {
 func TestSerialFrame_St_Ld(t *testing.T) {
 	mySerial, _ := New(SerialReg{
 		St: SerialStart{
-			valid: true,
-			data: []uint8{0x01,0x02},
+			Valid: true,
+			Data:  []uint8{0x01, 0x02},
 		},
 		Ld: SerialLenDesc{
-			valid: true,
-			pos: 2,
-			len: 2,
+			Valid: true,
+			Pos:   2,
+			Len:   2,
 		},
 		Argu: SerialArgu{
-			lenMax: 16,
-			lenMin: 2,
+			LenMax: 16,
+			LenMin: 2,
 		},
 	}, 1024)
 	mySerial.AddCallback(func() {
@@ -104,9 +103,9 @@ func TestSerialFrame_St_Ld(t *testing.T) {
 		t.Errorf("Serial New failed")
 	}
 	originBuf := []byte{
-		0x01,0x02,0x00,0x02,3,4,
-		2,3,4,0x0d,
-		0x01,0x02,0x00,0x04,0x0a,0x0b,0x0c,0x0d}
+		0x01, 0x02, 0x00, 0x06, 3, 4,
+		2, 3, 4, 0x0d,
+		0x01, 0x02, 0x00, 0x08, 0x0a, 0x0b, 0x0c, 0x0d}
 	beego.Info("write buf: ", hex.EncodeToString(originBuf))
 	mySerial.Write(originBuf)
 }
@@ -114,17 +113,17 @@ func TestSerialFrame_St_Ld(t *testing.T) {
 func TestSerialFrame_St_Ld_Offset(t *testing.T) {
 	mySerial, _ := New(SerialReg{
 		St: SerialStart{
-			valid: true,
-			data: []uint8{0x01},
+			Valid: true,
+			Data:  []uint8{0x01},
 		},
 		Ld: SerialLenDesc{
-			valid: true,
-			pos: 2,
-			len: 2,
+			Valid: true,
+			Pos:   2,
+			Len:   2,
 		},
 		Argu: SerialArgu{
-			lenMax: 16,
-			lenMin: 2,
+			LenMax: 16,
+			LenMin: 2,
 		},
 	}, 1024)
 	mySerial.AddCallback(func() {
@@ -137,9 +136,9 @@ func TestSerialFrame_St_Ld_Offset(t *testing.T) {
 		t.Errorf("Serial New failed")
 	}
 	originBuf := []byte{
-		0x01,0x03,0x00,0x02,3,4,
-		2,3,4,0x0d,
-		0x01,0x08,0x00,0x04,0x0a,0x0b,0x0c,0x0d}
+		0x01, 0x03, 0x00, 0x06, 3, 4,
+		2, 3, 4, 0x0d,
+		0x01, 0x08, 0x00, 0x08, 0x0a, 0x0b, 0x0c, 0x0d}
 	beego.Info("write buf: ", hex.EncodeToString(originBuf))
 	mySerial.Write(originBuf)
 }

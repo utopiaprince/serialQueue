@@ -6,12 +6,12 @@ import (
 )
 
 func (sf *SerialFrm) waitSdState(state SerialSigType, ch byte) bool {
-	if !sf.register.St.valid {
+	if !sf.register.St.Valid {
 		sf.tranState(LD_SIG)
 		return false
 	}
 
-	if sf.register.St.data[sf.sdIndex] == ch  {
+	if sf.register.St.Data[sf.sdIndex] == ch  {
 		sf.sqqueue.Write([]byte{ch})
 		sf.sdIndex++
 		sf.lastEnterNum++
@@ -33,12 +33,12 @@ func (sf *SerialFrm) waitSdState(state SerialSigType, ch byte) bool {
 }
 
 func (sf *SerialFrm) waitLdState(state SerialSigType, ch byte) bool{
-	if !sf.register.Ld.valid {
+	if !sf.register.Ld.Valid {
 		sf.tranState(ED_SIG)
 		return false
 	}
 
-	if sf.lastEnterNum < uint16(sf.register.Ld.pos) {
+	if sf.lastEnterNum < uint16(sf.register.Ld.Pos) {
 		sf.sqqueue.Write([]byte{ch})
 		sf.lastEnterNum++
 		return true
@@ -51,8 +51,9 @@ func (sf *SerialFrm) waitLdState(state SerialSigType, ch byte) bool{
 	if sf.ldIndex == SERIAL_LD_LEN_MAX {
 		sf.ldVal = uint16(sf.ldData[SERIAL_LD_LEN_MAX-2]) * uint16(256) +
 			uint16(sf.ldData[SERIAL_LD_LEN_MAX-1])
+		sf.ldVal -= uint16(sf.register.Ld.Pos) + uint16(sf.register.Ld.Len)
 
-		if (sf.ldVal > sf.register.Argu.lenMax) || (sf.ldVal < sf.register.Argu.lenMin) {
+		if (sf.ldVal > sf.register.Argu.LenMax) || (sf.ldVal < sf.register.Argu.LenMin) {
 			sf.ldIndex = 0
 			sf.tranState(SD_SIG)
 
@@ -87,7 +88,7 @@ func (sf *SerialFrm) endStateHandle() {
 }
 
 func (sf *SerialFrm) waitEdState(state SerialSigType, ch byte){
-	if !sf.register.Ed.valid {
+	if !sf.register.Ed.Valid {
 		if sf.ldVal == 0 {
 			sf.endStateHandle()
 		}else {
@@ -102,11 +103,11 @@ func (sf *SerialFrm) waitEdState(state SerialSigType, ch byte){
 		if sf.ldVal == 0 {
 			sf.sqqueue.Write([]byte{ch})
 			sf.lastEnterNum++
-			if sf.register.Ed.delayEn {
+			if sf.register.Ed.DelayEn {
 				// TODO: 增加超时回调
 			} else {
 				// TODO: 判断结束符字符串是否匹配成功，现在是只支持1个字节
-				if sf.register.Ed.data == ch {
+				if sf.register.Ed.Data == ch {
 					sf.endStateHandle()
 				}
 			}
@@ -115,11 +116,11 @@ func (sf *SerialFrm) waitEdState(state SerialSigType, ch byte){
 			sf.lastEnterNum++
 			sf.payloadLen++
 			if sf.payloadLen >= sf.ldVal {
-				if sf.register.Ed.delayEn {
+				if sf.register.Ed.DelayEn {
 					// TODO: 增加超时回调
 				} else {
 					// TODO: 判断结束符字符串是否匹配成功，现在是只支持1个字节
-					if sf.register.Ed.data == ch {
+					if sf.register.Ed.Data == ch {
 						sf.endStateHandle()
 					}
 				}
@@ -183,15 +184,20 @@ func New(sReg SerialReg, squeueLen uint16) (*SerialFrm, error) {
 	var sFrm SerialFrm
 
 	sFrm.register = &sReg
-	sFrm.register.St.len = uint8(len(sFrm.register.St.data))
+	sFrm.register.St.len = uint8(len(sFrm.register.St.Data))
 
 	sFrm.ldIndex = 0
 	sFrm.ldVal = 0
-	sFrm.ldData = make([]byte, sFrm.register.Ld.len)
+	sFrm.ldData = make([]byte, sFrm.register.Ld.Len)
 
 	sFrm.payloadLen = 0
 	sFrm.edIndex = 0
 	sFrm.lastEnterNum = 0
+
+	if sFrm.register.Argu.LenMax == 0 {
+		sFrm.register.Argu.LenMax = squeueLen
+	}
+
 
 	sFrm.fsmState = SD_SIG
 	sFrm.sqqueue = bytes.NewBuffer(make([]byte, 0, squeueLen))

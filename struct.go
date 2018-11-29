@@ -18,28 +18,28 @@ const SERIAL_LD_LEN_MAX	 = 2
 
 type SerialStart struct {
 	len   uint8
-	data  []uint8
-	valid bool
+	Data  []uint8
+	Valid bool
 }
 
 type SerialLenDesc struct {
-	len    uint8
-	pos    uint8
-	data   []uint8
-	valid  bool
+	Len    uint8
+	Pos    uint8
+	Data   []uint8
+	Valid  bool
 }
 
 type SerialArgu struct {
-	lenMax uint16
-	lenMin uint16
+	LenMax uint16
+	LenMin uint16
 }
 
 type SerialEnd struct {
-	len   uint8
-	data  uint8
-	valid bool
-	delayEn  bool
-	delayMs  uint16
+	Len   uint8
+	Data  uint8
+	Valid bool
+	DelayEn  bool
+	DelayMs  uint16
 }
 
 type SerialReg struct {
